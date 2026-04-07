@@ -1,30 +1,151 @@
+<!-- ================= FULL TAILORING SOFTWARE SYSTEM ================= -->
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>SSV Tailors</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSV Tailors - Full System</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
 <style>
-body{font-family:Arial;margin:0;background:#fff7fb;text-align:center;}
-header{background:#d63384;color:white;padding:20px;}
-nav{background:#222;padding:10px;}
+body{margin:0;font-family:Poppins;background:#f4f4f4;}
+header{background:#d63384;color:white;text-align:center;padding:20px;}
+nav{background:#222;padding:10px;text-align:center;}
 nav a{color:white;margin:10px;text-decoration:none;}
+section{padding:20px;text-align:center;}
+.card{background:white;padding:15px;margin:10px;border-radius:10px;display:inline-block;width:250px;box-shadow:0 5px 10px rgba(0,0,0,0.1);} 
+input,select{width:80%;padding:10px;margin:10px;border-radius:8px;border:1px solid #ccc;}
+button{background:#d63384;color:white;padding:10px 15px;border:none;border-radius:5px;margin:5px;cursor:pointer;}
 </style>
 </head>
+
 <body>
 
 <header>
-<h1>SSV Tailors</h1>
-<p>Ladies Boutique | Free Pickup</p>
+<h1>SSV Tailors - Software System</h1>
+<p>Booking | Billing | Tracking</p>
 </header>
 
 <nav>
-<a href="index.html">Home</a>
-<a href="services.html">Services</a>
-<a href="gallery.html">Gallery</a>
-<a href="contact.html">Booking</a>
-<a href="admin.html">Admin</a>
+<a href="#booking">Booking</a>
+<a href="#orders">Orders</a>
+<a href="#report">Reports</a>
 </nav>
 
-<h2>Welcome to SSV Tailors</h2>
+<!-- BOOKING -->
+<section id="booking">
+<h2>Customer Booking</h2>
+<input id="name" placeholder="Customer Name"><br>
+<input id="phone" placeholder="Phone"><br>
+<select id="service">
+<option>Blouse</option>
+<option>Designer Blouse</option>
+<option>Fall & Pico</option>
+</select><br>
+<input type="date" id="date"><br>
+
+<button onclick="addBooking()">Add Booking</button>
+<button onclick="generateReceipt()">Receipt</button>
+</section>
+
+<!-- ORDERS -->
+<section id="orders">
+<h2>Order Management</h2>
+<button onclick="loadOrders()">Load Orders</button>
+<div id="orderList"></div>
+</section>
+
+<!-- REPORT -->
+<section id="report">
+<h2>Daily Report</h2>
+<button onclick="showReport()">View Report</button>
+<p id="reportData"></p>
+</section>
+
+<script>
+
+// ADD BOOKING
+function addBooking(){
+let name=document.getElementById("name").value;
+let phone=document.getElementById("phone").value;
+let service=document.getElementById("service").value;
+let date=document.getElementById("date").value;
+
+let price = service=="Designer Blouse"?1200:500;
+
+let order={name,phone,service,date,price,status:"Pending"};
+
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+orders.push(order);
+localStorage.setItem("orders",JSON.stringify(orders));
+
+// Google Sheet
+fetch("https://script.google.com/macros/s/AKfycby-7ZuwllktAWORzhw64YOc4caSPkkJNCLoUDyToM_jIBsNRHMHyrfWE_83ZeNrz03-/exec",{
+method:"POST",
+body:JSON.stringify(order)
+});
+
+// WhatsApp
+window.open("https://wa.me/919966937346?text=Order: "+service+" Name:"+name);
+
+alert("Booking Added");
+}
+
+// LOAD ORDERS
+function loadOrders(){
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+let output="";
+
+orders.forEach((o,i)=>{
+output+=`<div class='card'>
+<p>${o.name}</p>
+<p>${o.service}</p>
+<p>₹${o.price}</p>
+<p>Status: ${o.status}</p>
+<button onclick="completeOrder(${i})">Complete</button>
+</div>`;
+});
+
+document.getElementById("orderList").innerHTML=output;
+}
+
+// COMPLETE ORDER
+function completeOrder(i){
+let orders=JSON.parse(localStorage.getItem("orders"));
+orders[i].status="Completed";
+localStorage.setItem("orders",JSON.stringify(orders));
+loadOrders();
+}
+
+// REPORT
+function showReport(){
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+let total=0;
+orders.forEach(o=> total+=o.price);
+
+document.getElementById("reportData").innerText="Total Revenue: ₹"+total;
+}
+
+// RECEIPT
+function generateReceipt(){
+let name=document.getElementById("name").value;
+let service=document.getElementById("service").value;
+let price = service=="Designer Blouse"?1200:500;
+let id="SSV"+Math.floor(Math.random()*10000);
+
+let w=window.open("","Receipt","width=400,height=600");
+w.document.write(`
+<h2>SSV Tailors</h2>
+<p>Receipt No: ${id}</p>
+<p>Name: ${name}</p>
+<p>Service: ${service}</p>
+<p>Total: ₹${price}</p>
+<button onclick="window.print()">Print</button>
+`);
+}
+
+</script>
 
 </body>
 </html>
