@@ -1,0 +1,11 @@
+<h1>Admin Dashboard</h1>
+<button onclick="show()">Load</button>
+
+<div id="data"></div>
+
+<script>
+function show(){
+let d=JSON.parse(localStorage.getItem("sales"))||[];
+document.getElementById("data").innerText=JSON.stringify(d);
+}
+</script>
